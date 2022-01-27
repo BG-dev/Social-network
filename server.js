@@ -7,21 +7,35 @@ const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 
 const JWT_SECRET = 'sdjkfh8923yhjdksbfma@#*(&@*!^#&@bhjb2qiuhesdbhjdsfg839ujkdhfjk'
-
-mongoose.connect('mongodb://localhost:27017/login-app-db', {
-	useNewUrlParser: true,
-	useUnifiedTopology: true,
-	useCreateIndex: true
-})
+const PORT = process.env.PORT || 3000;
 
 const app = express()
+
+async function start(){
+	try {
+		await mongoose.connect('mongodb+srv://bg:12002233@cluster0.7nciq.mongodb.net/accounts', {
+			useNewUrlParser: true,
+			useFindAndModify: false,
+			useUnifiedTopology: true,
+			useCreateIndex: true
+		})
+		app.listen(3000, () => {
+			console.log(`Server has been started on ${PORT}...`);
+		})
+	} catch (err){
+		console.log(err)
+	}
+}
+
+start()
+
 app.use('/', express.static(path.join(__dirname, 'static')))
 app.use(bodyParser.json())
 
 app.post('/api/change-password', async (req, res) => {
 	const { token, newpassword: plainTextPassword } = req.body
 
-	if (!plainTextPassword || typeof plainTextPassword !== 'string') {
+	if (!plainTextPassword || typeof plainTextPassword !== 'string' ) {
 		return res.json({ status: 'error', error: 'Invalid password' })
 	}
 
@@ -61,7 +75,7 @@ app.post('/api/login', async (req, res) => {
 	}
 
 	if (await bcrypt.compare(password, user.password)) {
-
+ 
 		const token = jwt.sign(
 			{
 				id: user._id,
@@ -110,8 +124,4 @@ app.post('/api/register', async (req, res) => {
 	}
 
 	res.json({ status: 'ok' })
-})
-
-app.listen(3000, () => {
-	console.log('Server up at 3000')
 })
